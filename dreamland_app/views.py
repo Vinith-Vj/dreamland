@@ -223,32 +223,41 @@ def filter_properties(request):
         "min_sqft": request.GET.get("min_sqft", 500),
         "max_sqft": request.GET.get("max_sqft", 5000),
     }
+
+    print("Filters before processing:", filters)
     
     # Validate and convert filters to integers if necessary
     try:
-        filters["bhk"] = int(filters["bhk"]) if filters["bhk"] else None
+        # filters["bhk"] = int(filters["bhk"]) if filters["bhk"] else None
+        if filters["bhk"] and filters["bhk"].lower() != "null":  # Check if "bhk" is valid
+            filters["bhk"] = int(filters["bhk"])  
+        else:  
+            filters.pop("bhk", None)  # Remove "bhk" if it's empty, "null", or invalid
         filters["min_price"] = int(filters["min_price"])
         filters["max_price"] = int(filters["max_price"])
         filters["min_sqft"] = int(filters["min_sqft"])
         filters["max_sqft"] = int(filters["max_sqft"])
     except ValueError:
-        filters["bhk"] = None
+        # filters["bhk"] = None
+        filters.pop("bhk", None)
         filters["min_price"] = 0
         filters["max_price"] = 10000000
         filters["min_sqft"] = 500
         filters["max_sqft"] = 5000
+
+    print("Filters after processing:", filters)
     
     # Construct query dynamically
     query = Q()
     if filters["location"]:
-        # query &= Q(property_location__location__icontains=filters["location"])
-        # query &= Q(property_location__location_name__icontains=filters["location"])
         query &= Q(property_location__location_name__icontains=filters["location"])
     if filters["property_type"]:
         query &= Q(property_type=filters["property_type"])
     if filters["property_subtype"]:
         query &= Q(property_subtype=filters["property_subtype"])
-    if filters["bhk"] is not None:
+    # if filters["bhk"] is not None:
+    #     query &= Q(bhk=filters["bhk"])
+    if "bhk" in filters:  # Check if "bhk" exists in the dictionary
         query &= Q(bhk=filters["bhk"])
     
     # Apply numeric range filters
@@ -258,6 +267,8 @@ def filter_properties(request):
     # Retrieve filtered properties
     properties = Property.objects.filter(query).order_by('price')
     # locations = Location.objects.all()
+
+    print("Final Query:", query)
     
     # Pass context data to template
     context = {

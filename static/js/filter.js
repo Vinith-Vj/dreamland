@@ -157,8 +157,13 @@ document.addEventListener("DOMContentLoaded", () => {
       max_price: maxPriceInput.value,
       min_sqft: minSqftInput.value,
       max_sqft: maxSqftInput.value,
-      bhk: document.querySelector('input[name="bhk"]:checked')?.value || null,
+      // bhk: document.querySelector('input[name="bhk"]:checked')?.value || null,
     };
+
+    const selectedBhk = document.querySelector('input[name="bhk"]:checked');
+    if (selectedBhk) {
+      formData.bhk = selectedBhk.value;
+    }
 
     // Dynamically generate the query string for the filter form
     const queryString = new URLSearchParams(formData).toString();
